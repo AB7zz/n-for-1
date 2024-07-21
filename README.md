@@ -1,0 +1,1 @@
+https://n-for-1-frontend.vercel.app/

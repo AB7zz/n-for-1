@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { ethers } from 'ethers'
-import { createLightAccountAlchemyClient } from "@alchemy/aa-alchemy";
-import { LocalAccountSigner, sepolia } from "@alchemy/aa-core";
+import { createLightAccountAlchemyClient, createModularAccountAlchemyClient } from "@alchemy/aa-alchemy";
+import { sepolia } from "@alchemy/aa-core";
 // import type { Hex } from "viem";
  
 const chain = sepolia;
@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }) => {
                 const address = await newAccount.getAddress();
                 setAccount(address)
                 setIsConnected(true);
-                const _smartProvider = await getSmartProvider();
+                const _smartProvider = await getSmartAccount();
                 setSmartProvider(_smartProvider)
 
                 fetchBalances(signer)
@@ -52,7 +52,7 @@ export const AuthProvider = ({ children }) => {
                 const address = await signer.getAddress();
                 setAccount(address)
                 setIsConnected(true);
-                const _smartProvider = await getSmartProvider(signer);
+                const _smartProvider = await getSmartAccount(signer);
                 setSmartProvider(_smartProvider)
 
                 fetchBalances(signer)
@@ -113,39 +113,29 @@ export const AuthProvider = ({ children }) => {
 
         setBalances({ DAI, USDC, WETH });
     };
+    
 
-    const getSmartProvider = async (signer) => {
-        const provider = await createLightAccountAlchemyClient({
+    const getSmartAccount = async (signer) => {
+
+        const smartAccountClient = await createModularAccountAlchemyClient({
             apiKey: import.meta.env.VITE_ALCHEMY_API,
             chain,
             signer,
-            version: "v2.0.0",
+            gasManagerConfig: {
+              policyId: import.meta.env.VITE_ALCHEMY_GAS_POLICY_ID,
+            },
         });
         
-        console.log(provider.getAddress());
+        console.log(smartAccountClient.getAddress());
 
-        // const { hash: uoHash } = await provider.sendUserOperation({
-        //     uo: {
-        //       target: "0xTargetAddress", // The desired target contract address
-        //       data: "0xCallData", // The desired call data
-        //       value: 0n, // (Optional) value to send the target contract address
-        //     },
-        //   });
-           
-        //   console.log(uoHash); // Log the user operation hash
-           
-        //   // Wait for the user operation to be mined
-        //   const txHash = await provider.waitForUserOperationTransaction({ hash: uoHash });
-           
-        //   console.log(txHash); // Log the transaction hash
-
-        return provider
+        return smartAccountClient
     }
     
     return (
         <AuthContext.Provider value={{ 
             connectToMetaMask,
             checkMetaMask,
+            getSmartAccount,
             USDC_ADDRESS,
             DAI_ADDRESS,
             WETH_ADDRESS,
