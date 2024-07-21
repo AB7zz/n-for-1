@@ -40,11 +40,23 @@ const Card = () => {
         return '0';
     };
 
-    const approveToken = async (tokenAddress, amount) => {
+    const approveToken = async (smartAccountClient, tokenAddress, amount) => {
+        // const tokenContract = new ethers.Contract(tokenAddress, ERC20ABI, signer);
+        // const tx = await tokenContract.approve(NSwap, amount);
+        // await tx.wait();
+        // console.log(`Approved ${amount} of ${tokenAddress}`);
+
         const tokenContract = new ethers.Contract(tokenAddress, ERC20ABI, signer);
-        const tx = await tokenContract.approve(NSwap, amount);
-        await tx.wait();
-        console.log(`Approved ${amount} of ${tokenAddress}`);
+        const data = tokenContract.interface.encodeFunctionData('approve', [NSwap, amount]);
+        console.log(data)
+        const userOperation = {
+            target: tokenAddress,
+            data: data,
+            value: 0n
+        };
+
+        const { hash } = await smartAccountClient.sendUserOperation(userOperation);
+        console.log(`Approved ${amount} of ${tokenAddress}. Transaction hash: ${hash}`);
     };
 
     const getDecimal = (tokenAddress) => {
@@ -61,27 +73,11 @@ const Card = () => {
             const amounts = inputs.map((input, i) => ethers.utils.parseUnits(input, getDecimal(selectedTokens[i])));
             const tokens = selectedTokens;
 
+            const smartAccountClient = await getSmartAccount(signer)
             
             for (let i = 0; i < tokens.length; i++) {
-                await approveToken(tokens[i], amounts[i]);
+                await approveToken(smartAccountClient, tokens[i], amounts[i]);
             }
-
-            const gasEstimate = await NSwapContract.swapMultipleTokensForWETH(tokens, amounts);
-
-            const gasPrice = await provider.getGasPrice();
-            const maxPriorityFeePerGas = ethers.utils.parseUnits('2', 'gwei');
-            const maxFeePerGas = gasPrice.add(maxPriorityFeePerGas);
-
-            const txOptions = {
-                gasLimit: gasEstimate,
-                maxPriorityFeePerGas,
-                maxFeePerGas
-            };
-
-            const tx = await NSwapContract.swapMultipleTokensForWETH(tokens, amounts, txOptions);
-            await tx.wait();
-
-            console.log('Swap successful: ', hash)
 
             // const smartAccountClient = await getSmartAccount(signer)
 
@@ -100,6 +96,25 @@ const Card = () => {
             // });
 
             // console.log('Swap successful:', hash);
+
+            const gasPrice = await provider.getGasPrice();
+            const maxPriorityFeePerGas = ethers.utils.parseUnits('2', 'gwei');
+            const maxFeePerGas = gasPrice.add(maxPriorityFeePerGas);
+
+            const txOptions = {
+                gasLimit: 100000
+            };
+
+            const _amounts = inputs.map((input, i) => (parseInt(input) * 10**getDecimal(selectedTokens[i])).toString()); 
+
+            console.log(tokens)
+            console.log(amounts)
+            console.log(_amounts)
+
+            const tx = await NSwapContract.swapMultipleTokensForWETH(tokens, _amounts, txOptions);
+            await tx.wait();
+
+            
         } catch (error) {
             console.error('Error swapping tokens:', error);
         }
