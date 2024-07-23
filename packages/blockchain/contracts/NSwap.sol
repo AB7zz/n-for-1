@@ -29,12 +29,12 @@ contract NSwap {
 
         for (uint256 i = 0; i < tokens.length; i++) {
             // Check balance of the token for msg.sender
-            uint256 tokenBalance = IERC20(tokens[i]).balanceOf(msg.sender);
-            require(tokenBalance >= amountsIn[i], "Insufficient token balance");
+            // uint256 tokenBalance = IERC20(tokens[i]).balanceOf(msg.sender);
+            // require(tokenBalance >= amountsIn[i], "Insufficient token balance");
 
             // Check allowance
-            uint256 tokenAllowance = IERC20(tokens[i]).allowance(msg.sender, address(this));
-            require(tokenAllowance >= amountsIn[i], "Allowance not set or insufficient");
+            // uint256 tokenAllowance = IERC20(tokens[i]).allowance(msg.sender, address(this));
+            // require(tokenAllowance >= amountsIn[i], "Allowance not set or insufficient");
 
             // Transfer the specified amount of the token to this contract
             TransferHelper.safeTransferFrom(tokens[i], msg.sender, address(this), amountsIn[i]);
