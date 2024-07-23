@@ -1,6 +1,6 @@
 import React from 'react'
 import { useAuthContext } from '../../context/AuthContext';
-import { NSwap } from '../../constants/addresses';
+import { NSwap, SwapRouter } from '../../constants/addresses';
 import { NSwapABI, ERC20ABI } from '../../constants/abi';
 import { provider } from '../../context/AuthContext';
 import { ethers } from 'ethers';
@@ -41,22 +41,22 @@ const Card = () => {
     };
 
     const approveToken = async (smartAccountClient, tokenAddress, amount) => {
-        // const tokenContract = new ethers.Contract(tokenAddress, ERC20ABI, signer);
-        // const tx = await tokenContract.approve(NSwap, amount);
-        // await tx.wait();
-        // console.log(`Approved ${amount} of ${tokenAddress}`);
-
         const tokenContract = new ethers.Contract(tokenAddress, ERC20ABI, signer);
-        const data = tokenContract.interface.encodeFunctionData('approve', [NSwap, amount]);
-        console.log(data)
-        const userOperation = {
-            target: tokenAddress,
-            data: data,
-            value: 0n
-        };
+        const tx = await tokenContract.approve(SwapRouter, amount);
+        await tx.wait();
+        console.log(`Approved ${amount} of ${tokenAddress}`);
 
-        const { hash } = await smartAccountClient.sendUserOperation(userOperation);
-        console.log(`Approved ${amount} of ${tokenAddress}. Transaction hash: ${hash}`);
+        // const tokenContract = new ethers.Contract(tokenAddress, ERC20ABI, signer);
+        // const data = tokenContract.interface.encodeFunctionData('approve', [NSwap, amount]);
+        // console.log(data)
+        // const userOperation = {
+        //     target: tokenAddress,
+        //     data: data,
+        //     value: 0n
+        // };
+
+        // const { hash } = await smartAccountClient.sendUserOperation(userOperation);
+        // console.log(`Approved ${amount} of ${tokenAddress}. Transaction hash: ${hash}`);
     };
 
     const getDecimal = (tokenAddress) => {
@@ -97,19 +97,24 @@ const Card = () => {
 
             // console.log('Swap successful:', hash);
 
-            const gasPrice = await provider.getGasPrice();
-            const maxPriorityFeePerGas = ethers.utils.parseUnits('2', 'gwei');
-            const maxFeePerGas = gasPrice.add(maxPriorityFeePerGas);
-
-            const txOptions = {
-                gasLimit: 100000
-            };
+            
 
             const _amounts = inputs.map((input, i) => (parseInt(input) * 10**getDecimal(selectedTokens[i])).toString()); 
 
-            console.log(tokens)
-            console.log(amounts)
-            console.log(_amounts)
+            // const gasEstimate = await NSwapContract.estimateGas.swapMultipleTokensForWETH(tokens, _amounts);
+            const gasPrice = await provider.getGasPrice();
+            const maxPriorityFeePerGas = ethers.utils.parseUnits('2', 'gwei');
+            const maxFeePerGas = gasPrice.add(maxPriorityFeePerGas);
+            const txOptions = {
+                gasLimit: 400000,
+                maxPriorityFeePerGas,
+                maxFeePerGas
+            };
+            
+            // console.log(gasEstimate, gasPrice, maxPriorityFeePerGas, maxFeePerGas)
+            // console.log(tokens)
+            // console.log(amounts)
+            // console.log(_amounts)
 
             const tx = await NSwapContract.swapMultipleTokensForWETH(tokens, _amounts, txOptions);
             await tx.wait();
