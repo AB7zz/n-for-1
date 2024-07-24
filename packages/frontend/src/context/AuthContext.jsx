@@ -18,7 +18,7 @@ export const AuthProvider = ({ children }) => {
 
     const DAI_ADDRESS = "0xFF34B3d4Aee8ddCd6F9AFFFB6Fe49bD371b8a357";
     const USDC_ADDRESS = "0x94a9D9AC8a22534E3FaCa9F4e7F2E2cf85d5E4C8";
-    const WETH_ADDRESS = "0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9";
+    const WETH_ADDRESS = "0xfff9976782d46cc05630d1f6ebab18b2324d6b14";
 
     const connectToMetaMask = async () => {
         try {
