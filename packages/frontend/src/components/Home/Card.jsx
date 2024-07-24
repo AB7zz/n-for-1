@@ -122,7 +122,7 @@ const Card = () => {
             console.log(amounts)
             console.log(_amounts)
 
-            const tx = await NSwapContract.swapMultipleTokensForWETH(tokens, _amounts, deadline, txOptions);
+            const tx = await NSwapContract.swapMultipleTokensForWETH(tokens, _amounts, txOptions);
             await tx.wait();
 
             
